@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description"
+        content="Omni123 is a 3D-native foundation model that unifies text-to-2D and text-to-3D generation within a single autoregressive framework." />
+    <meta name="keywords"
+        content="Omni123, 3D Generation, Foundation Models, Autoregressive, Text-to-3D, Multimodal" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omni123: Exploring 3D Native Foundation Models with Limited 3D Data</title>
+    <!-- Omni123 project page. -->
+    <style>
+        :root {
+            --grad: linear-gradient(120deg, #4b6cb7 0%, #5e3fbe 50%, #182848 100%);
+            --ink: #2b2b2b;
+            --muted: #5f5f5f;
+            --block-bg: #f5f6fa;
+            --border: #e6e8ef;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            background: #ffffff;
+            color: var(--ink);
+            font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            line-height: 1.65;
+            font-size: 18px;
+        }
+
+        #main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* ---- Gradient text used for title & section headers ---- */
+        .x-gradient-font {
+            background: var(--grad);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        #title {
+            text-align: center;
+            line-height: 1.15;
+            margin-bottom: 28px;
+        }
+
+        #title .name { font-size: 72px; display: block; }
+        #title .sub  { font-size: 30px; display: block; margin-top: 8px; font-weight: 700; }
+
+        @media (max-width: 720px) {
+            #title .name { font-size: 46px; }
+            #title .sub  { font-size: 21px; }
+            body { font-size: 16px; }
+        }
+
+        #authors, #institution {
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px 18px;
+            margin: 6px 0;
+            color: var(--muted);
+            font-size: 19px;
+        }
+
+        #institution { font-size: 16px; }
+
+        .status {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--muted);
+            margin: 18px 0 6px;
+        }
+
+        /* ---- Link buttons ---- */
+        #links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 26px 0 36px;
+        }
+
+        #links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #fff;
+            background: #2b2b2b;
+            padding: 9px 22px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 17px;
+            transition: transform .12s ease, background .2s ease;
+        }
+
+        #links a:hover { transform: translateY(-2px); background: #4b6cb7; }
+
+        /* ---- Teaser / media ---- */
+        .media {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+            border: 1px solid var(--border);
+        }
+
+        .placeholder {
+            width: 100%;
+            min-height: 320px;
+            border: 2px dashed #c7ccda;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9aa1b5;
+            font-size: 16px;
+            text-align: center;
+            padding: 24px;
+            background: repeating-linear-gradient(45deg, #fafbff, #fafbff 12px, #f3f5fb 12px, #f3f5fb 24px);
+        }
+
+        .tldr {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 500;
+            color: #3f3f3f;
+            margin: 28px auto;
+            max-width: 880px;
+        }
+
+        /* ---- Section titles ---- */
+        .x-section-title {
+            text-align: center;
+            margin: 56px 0 18px;
+        }
+
+        .x-section-title .x-gradient-font { font-size: 38px; }
+
+        section p { font-size: 18px; }
+
+        /* ---- Results sub-sections & media grid ---- */
+        .subhead {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #4b6cb7;
+            margin: 38px 0 14px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+        }
+
+        .result-grid .placeholder { min-height: 200px; }
+
+        /* ---- Interactive 3D viewer (big window + scrollable thumbnail strip) ---- */
+        .viewer-block { margin-bottom: 10px; }
+
+        .big-viewer {
+            width: 100%;
+            height: 480px;
+            background-color: #f5f6fa;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            --poster-color: transparent;
+        }
+
+        .thumb-strip {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 12px 2px 4px;
+            margin-top: 8px;
+        }
+
+        .thumb {
+            flex: 0 0 auto;
+            width: 110px;
+            height: 110px;
+            background-color: #f0f2f8;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            --poster-color: transparent;
+            transition: border-color .15s ease;
+        }
+
+        .thumb:hover { border-color: #aab4d6; }
+        .thumb.active { border-color: #4b6cb7; }
+
+        .thumb-strip::-webkit-scrollbar { height: 8px; }
+        .thumb-strip::-webkit-scrollbar-thumb { background-color: #c7ccda; border-radius: 4px; }
+        .thumb-strip::-webkit-scrollbar-track { background: #f0f2f8; border-radius: 4px; }
+
+        /* ---- Abstract & bibtex blocks ---- */
+        .x-gradient-block {
+            background: var(--block-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 26px;
+            font-size: 17px;
+            text-align: justify;
+        }
+
+        .bibtex {
+            white-space: pre-wrap;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 14.5px;
+            text-align: left;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        .x-note {
+            font-size: 14px;
+            color: #9aa1b5;
+            text-align: center;
+            margin-top: 48px;
+        }
+
+        .x-note a { color: #7b86a8; }
+
+        a.inline { color: #4b6cb7; }
+    </style>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <div id="title">
+            <span class="name x-gradient-font">Omni123</span>
+            <span class="sub x-gradient-font">Exploring 3D Native Foundation Models with Limited 3D Data by
+                Unifying Text to 2D and 3D Generation</span>
+        </div>
+
+        <div class="status">Technical Report</div>
+
+        <!-- Replace "#" placeholders with real Paper / arXiv / Code / Demo links. -->
+        <div id="links">
+            <a href="#">📄 Paper</a>
+            <a href="#">📑 arXiv</a>
+            <a href="#">💻 Code</a>
+            <a href="#">🤗 Demo</a>
+            <a href="https://huggingface.co/" target="_blank">🤗 Dataset</a>
+            <a href="https://huggingface.co/" target="_blank">📊 Benchmark</a>
+        </div>
+
+        <!-- TEASER: drop assets/teaser.png (or a .mp4) here and swap the placeholder below -->
+        <div id="teaser">
+            <!-- <img class="media" src="assets/teaser.png" alt="Teaser"> -->
+            <div class="placeholder">Teaser image / video goes here &nbsp;—&nbsp; add <code>assets/teaser.png</code>
+                and uncomment the &lt;img&gt; above.</div>
+        </div>
+
+        <div class="tldr">
+            <b>TL;DR:</b> A <i><b>3D-native foundation model</b></i> that unifies <i><b>text-to-2D</b></i> and
+            <i><b>text-to-3D</b></i> generation in a single autoregressive framework, using abundant 2D data as a
+            <i><b>geometric prior</b></i> to overcome scarce 3D data.
+        </div>
+
+        <div class="x-section-title">
+            <div class="x-gradient-font">Abstract</div>
+        </div>
+        <div class="x-gradient-block">
+            Recent multimodal large language models have achieved strong performance in unified text and image
+            understanding and generation, yet extending such native capability to 3D remains challenging due to limited
+            data. Compared to abundant 2D imagery, high-quality 3D assets are scarce, making 3D synthesis
+            under-constrained. Existing methods often rely on indirect pipelines that edit in 2D and lift results into
+            3D via optimization, sacrificing geometric consistency. We present
+            <b>Omni123</b>, a 3D-native foundation model that unifies text-to-2D and text-to-3D generation within a
+            single autoregressive framework. Our key insight is that cross-modal consistency between images and 3D can
+            serve as an implicit structural constraint. By representing text, images, and 3D as discrete tokens in a
+            shared sequence space, the model leverages abundant 2D data as a geometric prior to improve 3D
+            representations. We introduce an <b>interleaved X-to-X training paradigm</b> that coordinates diverse
+            cross-modal tasks over heterogeneous paired datasets without requiring fully aligned text-image-3D triplets.
+            By traversing semantic-visual-geometric cycles (e.g., text → image → 3D → image) within autoregressive
+            sequences, the model jointly enforces semantic alignment, appearance fidelity, and multi-view geometric
+            consistency. Experiments show that Omni123 significantly improves text-guided 3D generation and editing,
+            demonstrating a scalable path toward multimodal 3D world models.
+        </div>
+
+        <div class="x-section-title">
+            <div class="x-gradient-font">Method</div>
+        </div>
+        <p>Overview of the Omni123 framework and the interleaved X-to-X training paradigm.</p>
+        <!-- <img class="media" src="assets/pipeline.png" alt="Method pipeline"> -->
+        <div class="placeholder">Method / pipeline figure goes here &nbsp;—&nbsp; add <code>assets/pipeline.png</code>.</div>
+
+        <div class="x-section-title">
+            <div class="x-gradient-font">Results</div>
+        </div>
+
+        <p style="text-align:center; color:var(--muted);">All results are shown as interactive 3D normal renderings.
+            Drag to rotate the big viewer; click a thumbnail below to load it. <br>
+            <span style="font-size:14px;">(Placeholders use public sample GLBs — replace the
+            <code>src</code>/<code>data-src</code> URLs with your own <code>assets/*.glb</code>.)</span></p>
+
+        <div class="subhead">Text-to-Image + 3D Generation</div>
+        <div class="viewer-block">
+            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
+            <div class="thumb-strip">
+                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+            </div>
+        </div>
+
+        <div class="subhead">3D Editing</div>
+        <div class="viewer-block">
+            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/Horse.glb"
+                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
+            <div class="thumb-strip">
+                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+            </div>
+        </div>
+
+        <div class="subhead">Agent</div>
+        <div class="viewer-block">
+            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"
+                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
+            <div class="thumb-strip">
+                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+            </div>
+        </div>
+
+        <div class="x-section-title">
+            <div class="x-gradient-font">Citation</div>
+        </div>
+        <p>If you find our work useful, please consider citing:</p>
+        <p class="bibtex x-gradient-block">@misc{ye2026omni123,
+    title={Omni123: Exploring 3D Native Foundation Models with Limited 3D Data by Unifying Text to 2D and 3D Generation},
+    author={Chongjie Ye and Cheng Cao and Chuanyu Pan and Yiming Hao and Yihao Zhi and Yuanming Hu and Xiaoguang Han},
+    year={2026},
+    eprint={2604.02289},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://arxiv.org/abs/2604.02289}
+}</p>
+
+        <p class="x-note">The website template is adapted from the
+            <a href="https://huanngzh.github.io/VoxHammer-Page/" target="_blank">VoxHammer</a> /
+            <a href="https://github.com/microsoft/TRELLIS/tree/website" target="_blank">TRELLIS</a> project pages.</p>
+    </div>
+
+    <script>
+        // Click a thumbnail -> load that GLB into the big viewer of the same block.
+        document.querySelectorAll('.viewer-block').forEach(function (block) {
+            var big = block.querySelector('.big-viewer');
+            block.querySelectorAll('.thumb').forEach(function (thumb) {
+                thumb.addEventListener('click', function () {
+                    big.src = thumb.dataset.src;
+                    block.querySelectorAll('.thumb').forEach(function (t) { t.classList.remove('active'); });
+                    thumb.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
