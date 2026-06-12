@@ -33,9 +33,9 @@
         }
 
         #main {
-            max-width: 1000px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 48px 24px 80px;
+            padding: 48px 32px 80px;
         }
 
         /* ---- Gradient text used for title & section headers ---- */
@@ -168,41 +168,104 @@
         .result-grid .placeholder { min-height: 200px; }
 
         /* ---- Interactive 3D viewer (big window + scrollable thumbnail strip) ---- */
-        .viewer-block { margin-bottom: 10px; }
+        .viewer-block {
+            display: flex;
+            gap: 14px;
+            align-items: stretch;
+            margin-bottom: 10px;
+        }
 
         .big-viewer {
-            width: 100%;
+            display: block;
+            flex: 1 1 auto;
+            min-width: 0;
             height: 480px;
             background-color: #f5f6fa;
             border: 1px solid var(--border);
             border-radius: 12px;
-            --poster-color: transparent;
+            touch-action: none;
         }
 
+        /* Thumbnails: vertical strip on the LEFT of the big viewer */
         .thumb-strip {
+            flex: 0 0 auto;
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            overflow-x: auto;
-            padding: 12px 2px 4px;
-            margin-top: 8px;
+            overflow-y: auto;
+            max-height: 480px;
+            padding: 2px 6px 2px 2px;
         }
 
         .thumb {
             flex: 0 0 auto;
-            width: 110px;
-            height: 110px;
+            width: 96px;
+            height: 96px;
             background-color: #f0f2f8;
             border: 2px solid transparent;
             border-radius: 10px;
             cursor: pointer;
-            --poster-color: transparent;
+            overflow: hidden;
             transition: border-color .15s ease;
         }
 
+        .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .thumb:hover { border-color: #aab4d6; }
         .thumb.active { border-color: #4b6cb7; }
 
-        .thumb-strip::-webkit-scrollbar { height: 8px; }
+        /* ---- Editing section: viewer on the left, instruction list on the right ---- */
+        .edit-block {
+            display: flex;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .edit-left { flex: 1 1 auto; min-width: 0; display: flex; gap: 14px; align-items: stretch; }
+
+        .edit-instructions {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .instr-title {
+            font-weight: 700;
+            color: #4b6cb7;
+            margin-bottom: 12px;
+            font-size: 17px;
+        }
+
+        .instr {
+            padding: 11px 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            background: #f5f6fa;
+            font-size: 15px;
+            line-height: 1.4;
+            transition: border-color .15s ease, background .15s ease;
+        }
+
+        .instr:hover { border-color: #aab4d6; }
+        .instr.active { border-color: #4b6cb7; background: #eef1fb; font-weight: 600; }
+
+        /* ---- Two big windows side by side (before / after) ---- */
+        .dual-view { flex: 1 1 auto; min-width: 0; display: flex; gap: 14px; }
+        .view-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+        .view-label { text-align: center; font-weight: 600; color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+        .view-col .big-viewer { flex: none; width: 100%; height: 460px; }
+
+        @media (max-width: 760px) {
+            .dual-view { flex-direction: column; }
+            .viewer-block { flex-direction: column; }
+            .edit-block { flex-direction: column; }
+            .edit-left { flex-direction: column; }
+            .thumb-strip { flex-direction: row; max-height: none; overflow-x: auto; overflow-y: hidden; }
+            .edit-instructions { flex-basis: auto; width: 100%; }
+        }
+
+        .thumb-strip::-webkit-scrollbar { width: 8px; height: 8px; }
         .thumb-strip::-webkit-scrollbar-thumb { background-color: #c7ccda; border-radius: 4px; }
         .thumb-strip::-webkit-scrollbar-track { background: #f0f2f8; border-radius: 4px; }
 
@@ -236,7 +299,14 @@
 
         a.inline { color: #4b6cb7; }
     </style>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
 </head>
 
 <body>
@@ -251,7 +321,6 @@
 
         <!-- Replace "#" placeholders with real Paper / arXiv / Code / Demo links. -->
         <div id="links">
-            <a href="#">📄 Paper</a>
             <a href="#">📑 arXiv</a>
             <a href="#">💻 Code</a>
             <a href="#">🤗 Demo</a>
@@ -305,46 +374,67 @@
         </div>
 
         <p style="text-align:center; color:var(--muted);">All results are shown as interactive 3D normal renderings.
-            Drag to rotate the big viewer; click a thumbnail below to load it. <br>
+            Drag to rotate; click a thumbnail on the left to load it. <br>
             <span style="font-size:14px;">(Placeholders use public sample GLBs — replace the
             <code>src</code>/<code>data-src</code> URLs with your own <code>assets/*.glb</code>.)</span></p>
 
         <div class="subhead">Text-to-Image + 3D Generation</div>
         <div class="viewer-block">
-            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
             <div class="thumb-strip">
-                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <div class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
+                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
+                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
+                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
             </div>
+            <canvas class="big-viewer" data-init="https://modelviewer.dev/shared-assets/models/Astronaut.glb"></canvas>
         </div>
 
         <div class="subhead">3D Editing</div>
-        <div class="viewer-block">
-            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/Horse.glb"
-                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
+        <div class="viewer-block edit-block">
             <div class="thumb-strip">
-                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <div class="thumb active" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
+            </div>
+            <div class="view-col">
+                <div class="view-label">Original</div>
+                <canvas class="big-viewer" data-role="before" data-init="https://modelviewer.dev/shared-assets/models/Horse.glb"></canvas>
+            </div>
+            <div class="edit-instructions">
+                <div class="instr-title">Editing Instructions</div>
+                <div class="instr active" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb">"Add wings to the car"</div>
+                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb">"Change the material to gold"</div>
+                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb">"+ wearing a kimono"</div>
+                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb">"+ riding a skateboard"</div>
+            </div>
+            <div class="view-col">
+                <div class="view-label">Result</div>
+                <canvas class="big-viewer" data-role="after" data-init="https://modelviewer.dev/shared-assets/models/Astronaut.glb"></canvas>
             </div>
         </div>
 
         <div class="subhead">Agent</div>
-        <div class="viewer-block">
-            <model-viewer class="big-viewer" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"
-                camera-controls auto-rotate shadow-intensity="1" exposure="1" environment-image="neutral"></model-viewer>
+        <div class="viewer-block edit-block">
             <div class="thumb-strip">
-                <model-viewer class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb" src="https://modelviewer.dev/shared-assets/models/Horse.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
-                <model-viewer class="thumb" data-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" interaction-prompt="none" disable-zoom loading="lazy"></model-viewer>
+                <div class="thumb active" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
+                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
+            </div>
+            <div class="view-col">
+                <div class="view-label">Original</div>
+                <canvas class="big-viewer" data-role="before" data-init="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"></canvas>
+            </div>
+            <div class="edit-instructions">
+                <div class="instr-title">Agent Instructions</div>
+                <div class="instr active" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb">"Generate a robot, then add a helmet"</div>
+                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb">"Make an astronaut and pose it"</div>
+                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb">"Create a horse, then make it run"</div>
+            </div>
+            <div class="view-col">
+                <div class="view-label">Result</div>
+                <canvas class="big-viewer" data-role="after" data-init="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"></canvas>
             </div>
         </div>
 
@@ -367,17 +457,135 @@
             <a href="https://github.com/microsoft/TRELLIS/tree/website" target="_blank">TRELLIS</a> project pages.</p>
     </div>
 
-    <script>
-        // Click a thumbnail -> load that GLB into the big viewer of the same block.
-        document.querySelectorAll('.viewer-block').forEach(function (block) {
-            var big = block.querySelector('.big-viewer');
-            block.querySelectorAll('.thumb').forEach(function (thumb) {
-                thumb.addEventListener('click', function () {
-                    big.src = thumb.dataset.src;
-                    block.querySelectorAll('.thumb').forEach(function (t) { t.classList.remove('active'); });
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Every mesh is re-shaded with the surface-normal material, so any GLB is
+        // displayed as a normal map regardless of its original textures/materials.
+        const NORMAL_MAT = new THREE.MeshNormalMaterial();
+        const loader = new GLTFLoader();
+
+        // Fresh parse each call so the same GLB can be shown in several scenes
+        // (big viewer + thumbnail) without sharing one object across them.
+        function loadGLB(url) {
+            return new Promise((resolve, reject) =>
+                loader.load(url, g => resolve(g.scene), undefined, reject));
+        }
+
+        function applyNormal(obj) {
+            obj.traverse(c => { if (c.isMesh) c.material = NORMAL_MAT; });
+        }
+
+        function frame(camera, object, controls) {
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            object.position.sub(center); // recenter at origin
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const dist = (maxDim / (2 * Math.tan((camera.fov * Math.PI / 180) / 2))) * 1.7;
+            camera.position.set(0, 0, dist);
+            camera.near = dist / 100;
+            camera.far = dist * 100;
+            camera.lookAt(0, 0, 0);
+            camera.updateProjectionMatrix();
+            if (controls) { controls.target.set(0, 0, 0); controls.update(); }
+        }
+
+        // ---- Big interactive viewer (one WebGL context per result section) ----
+        function makeViewer(canvas) {
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+            const controls = new OrbitControls(camera, canvas);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.8;
+            let current = null;
+
+            function render() {
+                requestAnimationFrame(render);
+                const w = canvas.clientWidth, h = canvas.clientHeight;
+                if (canvas.width !== w || canvas.height !== h) {
+                    renderer.setSize(w, h, false);
+                    camera.aspect = w / h;
+                    camera.updateProjectionMatrix();
+                }
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            render();
+
+            return async function load(url) {
+                try {
+                    const obj = await loadGLB(url);
+                    applyNormal(obj);
+                    if (current) scene.remove(current);
+                    current = obj;
+                    scene.add(obj);
+                    frame(camera, obj, controls);
+                } catch (e) { console.error('Failed to load', url, e); }
+            };
+        }
+
+        // ---- Shared offscreen renderer to snapshot normal-shaded thumbnails ----
+        const snap = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+        snap.setSize(180, 180);
+        const snapCache = {};
+        async function thumbnail(url) {
+            if (snapCache[url]) return snapCache[url];
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+            const obj = await loadGLB(url);
+            applyNormal(obj);
+            scene.add(obj);
+            frame(camera, obj, null);
+            snap.render(scene, camera);
+            const data = snap.domElement.toDataURL('image/png');
+            snapCache[url] = data;
+            return data;
+        }
+
+        document.querySelectorAll('.viewer-block').forEach(block => {
+            // A block can have one viewer ("main") or two ("before"/"after").
+            const viewers = {};
+            block.querySelectorAll('.big-viewer').forEach(canvas => {
+                const role = canvas.dataset.role || 'main';
+                viewers[role] = makeViewer(canvas);
+                if (canvas.dataset.init) viewers[role](canvas.dataset.init);
+            });
+            const defaultRole = Object.keys(viewers)[0];
+            const pick = name => viewers[name] || viewers[defaultRole];
+
+            // Thumbnails select the input model (-> "before" viewer, or the only viewer).
+            const thumbs = block.querySelectorAll('.thumb');
+            thumbs.forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    pick(thumb.dataset.target)(thumb.dataset.src);
+                    thumbs.forEach(t => t.classList.remove('active'));
                     thumb.classList.add('active');
                 });
             });
+
+            // Instruction list selects the result (-> "after" viewer).
+            const instrs = block.querySelectorAll('.instr');
+            instrs.forEach(instr => {
+                instr.addEventListener('click', () => {
+                    pick(instr.dataset.target || 'after')(instr.dataset.src);
+                    instrs.forEach(i => i.classList.remove('active'));
+                    instr.classList.add('active');
+                });
+            });
+
+            // generate normal-shaded thumbnail previews sequentially
+            (async () => {
+                for (const thumb of thumbs) {
+                    try { thumb.querySelector('img').src = await thumbnail(thumb.dataset.src); }
+                    catch (e) { /* ignore a failed thumbnail */ }
+                }
+            })();
         });
     </script>
 </body>
