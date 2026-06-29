@@ -12,7 +12,7 @@
     <!-- Omni123 project page. -->
     <style>
         :root {
-            --grad: linear-gradient(120deg, #4b6cb7 0%, #5e3fbe 50%, #182848 100%);
+            --grad: linear-gradient(120deg, #9ed62b 0%, #5e9400 55%, #2c5200 100%);
             --ink: #2b2b2b;
             --muted: #5f5f5f;
             --block-bg: #f5f6fa;
@@ -40,10 +40,7 @@
 
         /* ---- Gradient text used for title & section headers ---- */
         .x-gradient-font {
-            background: var(--grad);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #5e9400;
             font-weight: 800;
         }
 
@@ -53,7 +50,7 @@
             margin-bottom: 28px;
         }
 
-        #title .name { font-size: 72px; display: block; }
+        #title .logo { display: block; width: min(580px, 84%); height: auto; margin: 0 auto 4px; }
         #title .sub  { font-size: 30px; display: block; margin-top: 8px; font-weight: 700; }
 
         @media (max-width: 720px) {
@@ -106,7 +103,7 @@
             transition: transform .12s ease, background .2s ease;
         }
 
-        #links a:hover { transform: translateY(-2px); background: #4b6cb7; }
+        #links a:hover { transform: translateY(-2px); background: #5e9400; color: #000; }
         #links a.disabled { background: #9aa1b5; cursor: default; }
         #links a.disabled:hover { transform: none; background: #9aa1b5; }
 
@@ -164,9 +161,9 @@
         /* ---- Results sub-sections & media grid ---- */
         .subhead {
             text-align: center;
-            font-size: 24px;
+            font-size: 34px;
             font-weight: 700;
-            color: #4b6cb7;
+            color: #5e9400;
             margin: 38px 0 14px;
         }
 
@@ -221,8 +218,8 @@
         }
 
         .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .thumb:hover { border-color: #aab4d6; }
-        .thumb.active { border-color: #4b6cb7; }
+        .thumb:hover { border-color: #cfe88a; }
+        .thumb.active { border-color: #5e9400; }
 
         /* ---- Editing section: viewer on the left, instruction list on the right ---- */
         .edit-block {
@@ -244,7 +241,7 @@
 
         .instr-title {
             font-weight: 700;
-            color: #4b6cb7;
+            color: #5e9400;
             margin-bottom: 12px;
             font-size: 17px;
         }
@@ -261,8 +258,8 @@
             transition: border-color .15s ease, background .15s ease;
         }
 
-        .instr:hover { border-color: #aab4d6; }
-        .instr.active { border-color: #4b6cb7; background: #eef1fb; font-weight: 600; }
+        .instr:hover { border-color: #cfe88a; }
+        .instr.active { border-color: #5e9400; background: #f3fbdd; font-weight: 600; }
 
         /* ---- Combined row: source thumbnail + its instruction ---- */
         .edit-item {
@@ -279,8 +276,8 @@
             line-height: 1.35;
             transition: border-color .15s ease, background .15s ease;
         }
-        .edit-item:hover { border-color: #aab4d6; }
-        .edit-item.active { border-color: #4b6cb7; background: #eef1fb; font-weight: 600; }
+        .edit-item:hover { border-color: #cfe88a; }
+        .edit-item.active { border-color: #5e9400; background: #f3fbdd; font-weight: 600; }
         .edit-item img {
             width: 58px; height: 58px; flex: 0 0 auto;
             border-radius: 8px; object-fit: cover;
@@ -332,9 +329,9 @@
             margin-top: 48px;
         }
 
-        .x-note a { color: #7b86a8; }
+        .x-note a { color: #6f9079; }
 
-        a.inline { color: #4b6cb7; }
+        a.inline { color: #5e9400; }
 
         /* ---- Auto-looping normal video viewer ---- */
         video.big-viewer { object-fit: contain; }
@@ -366,7 +363,7 @@
         .speed-opt {
             border: 1px solid var(--border);
             background: #f5f6fa;
-            color: #4b6cb7;
+            color: #5e9400;
             font: inherit;
             font-size: 12px;
             font-weight: 600;
@@ -375,8 +372,8 @@
             cursor: pointer;
             transition: background .15s ease, color .15s ease, border-color .15s ease;
         }
-        .speed-opt:hover { border-color: #aab4d6; }
-        .speed-opt.active { background: #4b6cb7; color: #fff; border-color: #4b6cb7; }
+        .speed-opt:hover { border-color: #cfe88a; }
+        .speed-opt.active { background: #5e9400; color: #000; border-color: #5e9400; }
 
         @media (max-width: 640px) {
             .subhead-row { flex-direction: column; gap: 8px; }
@@ -388,7 +385,8 @@
 <body>
     <div id="main">
         <div id="title">
-            <span class="name x-gradient-font">Omni123</span>
+            <img class="logo" src="assets/omni123-logo.png" alt="Omni123">
+
             <span class="sub x-gradient-font">Exploring 3D Native Foundation Models with Limited 3D Data by
                 Unifying Text to 2D and 3D Generation</span>
         </div>
@@ -438,10 +436,6 @@
                 2D and 3D codebooks.</figcaption>
         </figure>
 
-        <div class="x-section-title">
-            <div class="x-gradient-font">Results</div>
-        </div>
-
         <div class="subhead-row">
             <div class="speed-control">
                 <span class="speed-label">Speed</span>
@@ -473,23 +467,32 @@
     <script>
         // Pre-rendered 360-degree normal turntables (one sine period of pitch, so
         // the first and last frames join seamlessly). See assets/results/*.mp4.
+        // Split into two columns at ceil(n/2)=9, so indices 0-8 -> left column,
+        // 9-16 -> right column. Lead BOTH columns with characters/figures.
         const RESULTS = [
-            "072d818cb4a6156011f46b378a2f8bb35568bfe878dbabc25ee333248d8e70da",
-            "0bc21661cde3c2b751c355fba6aa59283a4e1617916939aed5a730b3ddd35ff8",
-            "0f041c1a96ff9ddf94be7f525b42421ce456798345e5f5964848635fe97c90d6",
-            "1544b79d21ba5011b0310a30abec648e714b18bb09fc493eb4da2b82013cb77e",
-            "1b416012e3864416b74637c9d962a9df_0_version7",
+            // figures and non-figures interleaved; supp objects spread across both
+            // columns (split at ceil(20/2)=10 -> 0-9 left, 10-19 right).
+            // --- left column (0-9) ---
             "1bfd297e4b64b54557d1ab1a044e3396_2_version4",
-            "26a9543a25f19efec5f21eb677f6a6331d7d7956dcf1a4e110139c0a9fc338d9",
-            "2a25ff9c7a035a37f74aeb723e810820_1_version3",
+            "072d818cb4a6156011f46b378a2f8bb35568bfe878dbabc25ee333248d8e70da",
+            "40e5e76a-f3b1-407c-ae20-cfae37c072f1",
+            "0e551bde-077a-4cc3-9fac-38637f892684",
             "31cb6da5a12187bd7d2c7d8f801de0491e0c3864fc1d9535866063e8a625a1aa_0_version12",
-            "3f4c7ba1aa7749c7bfcc3aae1aa5789a_2_version7",
-            "4227062690234d1fb5ed4b023260ca58_1_version10",
             "532f240c665466e8edd0182783b8e48848f92d86512bb06d520cd4ba2e6458e4",
+            "4abbb1a3-9d86-4bde-99d9-114bab58672d",
+            "edfc60331e01ba4fd903f91e75537966_2_version14",
             "98096b33289900fa4d0da4100f0fbad7_4_version4",
             "a2efde2ecfcfaf2bcafb90a6f8155d42_1_version9",
+            // --- right column (10-19) ---
+            "8623b9e2-da58-4d70-a792-7c418736313c",
+            "3f4c7ba1aa7749c7bfcc3aae1aa5789a_2_version7",
+            "26a9543a25f19efec5f21eb677f6a6331d7d7956dcf1a4e110139c0a9fc338d9",
+            "0f041c1a96ff9ddf94be7f525b42421ce456798345e5f5964848635fe97c90d6",
+            "afa0a9d7-3d82-4489-98cb-46bd65dadf90",
+            "0c7e2112-1c7a-4b24-a0af-1d580122a4ae",
             "d2327704bb49dcf5a0aa691146ed5af8_1_version4",
-            "edfc60331e01ba4fd903f91e75537966_2_version14",
+            "4227062690234d1fb5ed4b023260ca58_1_version10",
+            "2a25ff9c7a035a37f74aeb723e810820_1_version3",
             "f0a087726714136b02370a8a12df71e61551931037b36cafe122a0f01028f8e0_1_version10"
         ];
         const VID = i => `assets/results/${RESULTS[i]}.mp4`;
@@ -497,28 +500,21 @@
 
         // ---- Real 3D-editing pairs: source (Original) -> prediction (Result) ----
         const EDITS = [
-            { slug: "02a913d7-4eae-4ff5-a923-1a217105698c", instr: "Add a pair of feathery wing attachments to her upper back." },
-            { slug: "03cb45ec-5514-4795-a8c4-99d05bdb4988", instr: "Add a pair of broad, leathery wings to its back, shaped like molten rock with jagged edges." },
-            { slug: "00fbc606-0326-4d21-9c1c-4e59d36083fd", instr: "Add a pair of short, thick, curved horns above its eyes." },
-            { slug: "0183b689-d301-48e7-a29b-746645040dd4", instr: "Add a tall, cylindrical hat with a flat top and a brim that curves downward around the base, sitting atop his head." },
-            { slug: "01c583d9-7962-45c9-967c-01f0e2476310", instr: "Add a wide, pointed crown to the top of the figure's head." },
-            { slug: "00b9d8ab-7019-4c4f-ae00-d7f4f112c970", instr: "Add a broad, curved skirt that covers the lower torso and legs." },
-            { slug: "01a87cb3-76a1-4f93-97fb-d53ff0821f4f", instr: "Add a large, curved shield to the left forearm." },
-            { slug: "0235ad49-6652-42e1-b994-166087e5ab75", instr: "Add a segmented, hexagonal collar that wraps around the base of the neck." },
-            { slug: "01af04bb-092f-482d-9115-997433a91a66", instr: "Add a flat, rectangular sensor panel on the forehead above the eyes." },
-            { slug: "01d4d67a-6868-4570-b631-89b63f75443e", instr: "Add a pair of sharp, curved horns to the top of the skull." },
-            { slug: "0297c087-2d12-41e0-92ca-3f4562ec319d", instr: "Add a small, rounded head tuft on top of the duck's head." },
-            { slug: "01e3441a-a0ba-41c8-9e5f-83401aefad37", instr: "Remove the spiky protrusions from the outer edge of the head." },
-            { slug: "03b18d3b-56da-4d8d-8536-56b2c53536a4", instr: "Remove the feathered crest entirely from the bird's head." },
-            { slug: "02da1c1e-a796-40ef-ab43-dd16c3bc80a3", instr: "Remove the raised beaded border encircling the oval face." },
-            { slug: "02975475-c36e-455a-8056-ee14422f7c3a", instr: "Add a wide, flat, rectangular saddle on its back." },
-            { slug: "01aed740-955d-490c-a3eb-8a95b19ca341", instr: "Add a pair of jagged, protruding bone spurs along the spine from the base of the skull to the lower back." },
+            // named examples first
             { slug: 'owl', instr: 'Replace the head with a fierce chicken head' },
             { slug: 'dragon', instr: 'Replace the head with a fearsome dragon head with jagged horns and razor-sharp fangs' },
             { slug: 'dwarf', instr: 'Replace the head with a muscular bull head with thick curved horns' },
             { slug: 'cat', instr: 'Put on a cape' },
             { slug: 'jester', instr: 'Replace the head with a fearsome dragon head with jagged horns and razor-sharp fangs' },
-            { slug: 'flowerbox', instr: 'Remove the central flower decoration entirely.' }
+            { slug: 'flowerbox', instr: 'Remove the central flower decoration entirely.' },
+            // then uuid-named (consis3d) examples
+            { slug: "03cb45ec-5514-4795-a8c4-99d05bdb4988", instr: "Add a pair of broad, leathery wings to its back, shaped like molten rock with jagged edges." },
+            { slug: "0183b689-d301-48e7-a29b-746645040dd4", instr: "Add a tall, cylindrical hat with a flat top and a brim that curves downward around the base, sitting atop his head." },
+            { slug: "01c583d9-7962-45c9-967c-01f0e2476310", instr: "Add a wide, pointed crown to the top of the figure's head." },
+            { slug: "01a87cb3-76a1-4f93-97fb-d53ff0821f4f", instr: "Add a large, curved shield to the left forearm." },
+            { slug: "01d4d67a-6868-4570-b631-89b63f75443e", instr: "Add a pair of sharp, curved horns to the top of the skull." },
+            { slug: "02975475-c36e-455a-8056-ee14422f7c3a", instr: "Add a wide, flat, rectangular saddle on its back." },
+            { slug: "01aed740-955d-490c-a3eb-8a95b19ca341", instr: "Add a pair of jagged, protruding bone spurs along the spine from the base of the skull to the lower back." }
         ];
         const EVID = (slug, which) => `assets/edit/${slug}_${which}.mp4`;
         const EPOSTER = (slug, which) => `assets/edit/${slug}_${which}.jpg`;
