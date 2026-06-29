@@ -107,6 +107,8 @@
         }
 
         #links a:hover { transform: translateY(-2px); background: #4b6cb7; }
+        #links a.disabled { background: #9aa1b5; cursor: default; }
+        #links a.disabled:hover { transform: none; background: #9aa1b5; }
 
         /* ---- Teaser / media ---- */
         .media {
@@ -114,6 +116,15 @@
             border-radius: 12px;
             display: block;
             border: 1px solid var(--border);
+        }
+
+        figure.method-figure { margin: 0; }
+        .caption {
+            text-align: center;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.55;
+            margin: 14px 0 0;
         }
 
         .placeholder {
@@ -223,9 +234,12 @@
         .edit-left { flex: 1 1 auto; min-width: 0; display: flex; gap: 14px; align-items: stretch; }
 
         .edit-instructions {
-            flex: 0 0 280px;
+            flex: 0 0 340px;
             display: flex;
             flex-direction: column;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .instr-title {
@@ -249,6 +263,29 @@
 
         .instr:hover { border-color: #aab4d6; }
         .instr.active { border-color: #4b6cb7; background: #eef1fb; font-weight: 600; }
+
+        /* ---- Combined row: source thumbnail + its instruction ---- */
+        .edit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            background: #f5f6fa;
+            font-size: 15px;
+            line-height: 1.35;
+            transition: border-color .15s ease, background .15s ease;
+        }
+        .edit-item:hover { border-color: #aab4d6; }
+        .edit-item.active { border-color: #4b6cb7; background: #eef1fb; font-weight: 600; }
+        .edit-item img {
+            width: 58px; height: 58px; flex: 0 0 auto;
+            border-radius: 8px; object-fit: cover;
+            background: #eef0f6; border: 1px solid var(--border);
+        }
 
         /* ---- Two big windows side by side (before / after) ---- */
         .dual-view { flex: 1 1 auto; min-width: 0; display: flex; gap: 14px; }
@@ -298,15 +335,54 @@
         .x-note a { color: #7b86a8; }
 
         a.inline { color: #4b6cb7; }
+
+        /* ---- Auto-looping normal video viewer ---- */
+        video.big-viewer { object-fit: contain; }
+
+        /* ---- Text-to-3D: two side-by-side viewer columns (thumbnails + video) ---- */
+        .gallery-pair { display: flex; gap: 20px; align-items: stretch; margin-bottom: 10px; }
+        .gallery-col { flex: 1 1 0; min-width: 0; display: flex; gap: 14px; align-items: stretch; }
+        @media (max-width: 760px) { .gallery-pair { flex-direction: column; } }
+
+        /* ---- Section title row: title centered, speed control pinned left ---- */
+        .subhead-row {
+            position: relative;
+            margin: 38px 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .subhead-row .subhead { margin: 0; }
+        .subhead-row .speed-control { position: absolute; left: 0; margin: 0; }
+
+        /* ---- Playback-speed control (0x = pause) ---- */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+        }
+        .speed-label { color: var(--muted); font-size: 12px; margin-right: 4px; }
+        .speed-opt {
+            border: 1px solid var(--border);
+            background: #f5f6fa;
+            color: #4b6cb7;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+        }
+        .speed-opt:hover { border-color: #aab4d6; }
+        .speed-opt.active { background: #4b6cb7; color: #fff; border-color: #4b6cb7; }
+
+        @media (max-width: 640px) {
+            .subhead-row { flex-direction: column; gap: 8px; }
+            .subhead-row .speed-control { position: static; }
+        }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-    </script>
 </head>
 
 <body>
@@ -319,26 +395,12 @@
 
         <div class="status">Technical Report</div>
 
-        <!-- Replace "#" placeholders with real Paper / arXiv / Code / Demo links. -->
         <div id="links">
-            <a href="#">📑 arXiv</a>
-            <a href="#">💻 Code</a>
-            <a href="#">🤗 Demo</a>
-            <a href="https://huggingface.co/" target="_blank">🤗 Dataset</a>
-            <a href="https://huggingface.co/" target="_blank">📊 Benchmark</a>
-        </div>
-
-        <!-- TEASER: drop assets/teaser.png (or a .mp4) here and swap the placeholder below -->
-        <div id="teaser">
-            <!-- <img class="media" src="assets/teaser.png" alt="Teaser"> -->
-            <div class="placeholder">Teaser image / video goes here &nbsp;—&nbsp; add <code>assets/teaser.png</code>
-                and uncomment the &lt;img&gt; above.</div>
-        </div>
-
-        <div class="tldr">
-            <b>TL;DR:</b> A <i><b>3D-native foundation model</b></i> that unifies <i><b>text-to-2D</b></i> and
-            <i><b>text-to-3D</b></i> generation in a single autoregressive framework, using abundant 2D data as a
-            <i><b>geometric prior</b></i> to overcome scarce 3D data.
+            <a href="https://arxiv.org/abs/2604.02289" target="_blank">📑 arXiv</a>
+            <a class="disabled">💻 Code (coming soon)</a>
+            <a href="https://omniweave-omni123.hf.space/" target="_blank">🤗 Demo</a>
+            <a href="https://huggingface.co/datasets/OmniWeave/3DEdit-1M" target="_blank">🤗 Dataset</a>
+            <a href="https://huggingface.co/datasets/OmniWeave/Consis3D-Bench" target="_blank">📊 Benchmark</a>
         </div>
 
         <div class="x-section-title">
@@ -365,228 +427,222 @@
         <div class="x-section-title">
             <div class="x-gradient-font">Method</div>
         </div>
-        <p>Overview of the Omni123 framework and the interleaved X-to-X training paradigm.</p>
-        <!-- <img class="media" src="assets/pipeline.png" alt="Method pipeline"> -->
-        <div class="placeholder">Method / pipeline figure goes here &nbsp;—&nbsp; add <code>assets/pipeline.png</code>.</div>
+        <figure class="method-figure">
+            <img class="media" src="assets/pipeline.png" alt="Omni123 method pipeline">
+            <figcaption class="caption">Overview of the <b>Omni123</b> architecture. Text is encoded by dual
+                text encoders (CLIP and Qwen3-0.6B) and fed into a conditioning stream, while images and 3D shapes
+                are tokenized into 1D discrete tokens and concatenated into a unified generation stream. The unified
+                autoregressive transformer backbone uses 24 dual-stream blocks to jointly process the conditioning
+                and generation tokens via causal attention, followed by 6 single-stream layers operating only on
+                generation tokens, and finally with modality-specific linear heads that decode token logits over the
+                2D and 3D codebooks.</figcaption>
+        </figure>
 
         <div class="x-section-title">
             <div class="x-gradient-font">Results</div>
         </div>
 
-        <p style="text-align:center; color:var(--muted);">All results are shown as interactive 3D normal renderings.
-            Drag to rotate; click a thumbnail on the left to load it. <br>
-            <span style="font-size:14px;">(Placeholders use public sample GLBs — replace the
-            <code>src</code>/<code>data-src</code> URLs with your own <code>assets/*.glb</code>.)</span></p>
-
-        <div class="subhead">Text-to-Image + 3D Generation</div>
-        <div class="viewer-block">
-            <div class="thumb-strip">
-                <div class="thumb active" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
-                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
-                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
-                <div class="thumb" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
+        <div class="subhead-row">
+            <div class="speed-control">
+                <span class="speed-label">Speed</span>
+                <button class="speed-opt" data-s="0">0&times;</button>
+                <button class="speed-opt" data-s="0.5">0.5&times;</button>
+                <button class="speed-opt active" data-s="1">1&times;</button>
+                <button class="speed-opt" data-s="1.5">1.5&times;</button>
+                <button class="speed-opt" data-s="2">2&times;</button>
             </div>
-            <canvas class="big-viewer" data-init="https://modelviewer.dev/shared-assets/models/Astronaut.glb"></canvas>
+            <div class="subhead">Text-to-3D</div>
         </div>
+        <div class="gallery-pair" data-gallery-pair></div>
 
-        <div class="subhead">3D Editing</div>
-        <div class="viewer-block edit-block">
-            <div class="thumb-strip">
-                <div class="thumb active" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
+        <div class="subhead-row">
+            <div class="speed-control">
+                <span class="speed-label">Speed</span>
+                <button class="speed-opt" data-s="0">0&times;</button>
+                <button class="speed-opt" data-s="0.5">0.5&times;</button>
+                <button class="speed-opt active" data-s="1">1&times;</button>
+                <button class="speed-opt" data-s="1.5">1.5&times;</button>
+                <button class="speed-opt" data-s="2">2&times;</button>
             </div>
-            <div class="view-col">
-                <div class="view-label">Original</div>
-                <canvas class="big-viewer" data-role="before" data-init="https://modelviewer.dev/shared-assets/models/Horse.glb"></canvas>
-            </div>
-            <div class="edit-instructions">
-                <div class="instr-title">Editing Instructions</div>
-                <div class="instr active" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb">"Add wings to the car"</div>
-                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb">"Change the material to gold"</div>
-                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb">"+ wearing a kimono"</div>
-                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb">"+ riding a skateboard"</div>
-            </div>
-            <div class="view-col">
-                <div class="view-label">Result</div>
-                <canvas class="big-viewer" data-role="after" data-init="https://modelviewer.dev/shared-assets/models/Astronaut.glb"></canvas>
-            </div>
+            <div class="subhead">3D Editing</div>
         </div>
+        <div class="viewer-block edit-block" data-edit data-title="Editing Instructions"></div>
 
-        <div class="subhead">Agent</div>
-        <div class="viewer-block edit-block">
-            <div class="thumb-strip">
-                <div class="thumb active" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"><img alt=""></div>
-                <div class="thumb" data-target="before" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb"><img alt=""></div>
-            </div>
-            <div class="view-col">
-                <div class="view-label">Original</div>
-                <canvas class="big-viewer" data-role="before" data-init="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"></canvas>
-            </div>
-            <div class="edit-instructions">
-                <div class="instr-title">Agent Instructions</div>
-                <div class="instr active" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb">"Generate a robot, then add a helmet"</div>
-                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Astronaut.glb">"Make an astronaut and pose it"</div>
-                <div class="instr" data-target="after" data-src="https://modelviewer.dev/shared-assets/models/Horse.glb">"Create a horse, then make it run"</div>
-            </div>
-            <div class="view-col">
-                <div class="view-label">Result</div>
-                <canvas class="big-viewer" data-role="after" data-init="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"></canvas>
-            </div>
-        </div>
-
-        <div class="x-section-title">
-            <div class="x-gradient-font">Citation</div>
-        </div>
-        <p>If you find our work useful, please consider citing:</p>
-        <p class="bibtex x-gradient-block">@misc{ye2026omni123,
-    title={Omni123: Exploring 3D Native Foundation Models with Limited 3D Data by Unifying Text to 2D and 3D Generation},
-    author={Chongjie Ye and Cheng Cao and Chuanyu Pan and Yiming Hao and Yihao Zhi and Yuanming Hu and Xiaoguang Han},
-    year={2026},
-    eprint={2604.02289},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV},
-    url={https://arxiv.org/abs/2604.02289}
-}</p>
-
-        <p class="x-note">The website template is adapted from the
-            <a href="https://huanngzh.github.io/VoxHammer-Page/" target="_blank">VoxHammer</a> /
-            <a href="https://github.com/microsoft/TRELLIS/tree/website" target="_blank">TRELLIS</a> project pages.</p>
     </div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    <script>
+        // Pre-rendered 360-degree normal turntables (one sine period of pitch, so
+        // the first and last frames join seamlessly). See assets/results/*.mp4.
+        const RESULTS = [
+            "072d818cb4a6156011f46b378a2f8bb35568bfe878dbabc25ee333248d8e70da",
+            "0bc21661cde3c2b751c355fba6aa59283a4e1617916939aed5a730b3ddd35ff8",
+            "0f041c1a96ff9ddf94be7f525b42421ce456798345e5f5964848635fe97c90d6",
+            "1544b79d21ba5011b0310a30abec648e714b18bb09fc493eb4da2b82013cb77e",
+            "1b416012e3864416b74637c9d962a9df_0_version7",
+            "1bfd297e4b64b54557d1ab1a044e3396_2_version4",
+            "26a9543a25f19efec5f21eb677f6a6331d7d7956dcf1a4e110139c0a9fc338d9",
+            "2a25ff9c7a035a37f74aeb723e810820_1_version3",
+            "31cb6da5a12187bd7d2c7d8f801de0491e0c3864fc1d9535866063e8a625a1aa_0_version12",
+            "3f4c7ba1aa7749c7bfcc3aae1aa5789a_2_version7",
+            "4227062690234d1fb5ed4b023260ca58_1_version10",
+            "532f240c665466e8edd0182783b8e48848f92d86512bb06d520cd4ba2e6458e4",
+            "7716a123dc9ae2c4cb11c09f2708164b_3_version6",
+            "8f57e545012d6078179de244fee60a0d_1_version12",
+            "98096b33289900fa4d0da4100f0fbad7_4_version4",
+            "a2efde2ecfcfaf2bcafb90a6f8155d42_1_version9",
+            "c65e8b610a373100e81f590a23afa45d980bf62a99123fa5e950e475f1b2c7c4_1_version3",
+            "c69c4bacdecb7d9a40d34cff219071fe188f2c2648757182005fde3be233b0ec_2_version7",
+            "d2327704bb49dcf5a0aa691146ed5af8_1_version4",
+            "edfc60331e01ba4fd903f91e75537966_2_version14",
+            "f0a087726714136b02370a8a12df71e61551931037b36cafe122a0f01028f8e0_1_version10",
+            "f692f63011330a1d5afa9b959151d9ba_0_version3"
+        ];
+        const VID = i => `assets/results/${RESULTS[i]}.mp4`;
+        const POSTER = i => `assets/results/${RESULTS[i]}.jpg`;
 
-        // Every mesh is re-shaded with the surface-normal material, so any GLB is
-        // displayed as a normal map regardless of its original textures/materials.
-        const NORMAL_MAT = new THREE.MeshNormalMaterial();
-        const loader = new GLTFLoader();
+        // ---- Real 3D-editing pairs: source (Original) -> prediction (Result) ----
+        const EDITS = [
+            { slug: "02a913d7-4eae-4ff5-a923-1a217105698c", instr: "Add a pair of feathery wing attachments to her upper back." },
+            { slug: "03cb45ec-5514-4795-a8c4-99d05bdb4988", instr: "Add a pair of broad, leathery wings to its back, shaped like molten rock with jagged edges." },
+            { slug: "00fbc606-0326-4d21-9c1c-4e59d36083fd", instr: "Add a pair of short, thick, curved horns above its eyes." },
+            { slug: "0183b689-d301-48e7-a29b-746645040dd4", instr: "Add a tall, cylindrical hat with a flat top and a brim that curves downward around the base, sitting atop his head." },
+            { slug: "01c583d9-7962-45c9-967c-01f0e2476310", instr: "Add a wide, pointed crown to the top of the figure's head." },
+            { slug: "00b9d8ab-7019-4c4f-ae00-d7f4f112c970", instr: "Add a broad, curved skirt that covers the lower torso and legs." },
+            { slug: "01a87cb3-76a1-4f93-97fb-d53ff0821f4f", instr: "Add a large, curved shield to the left forearm." },
+            { slug: "0235ad49-6652-42e1-b994-166087e5ab75", instr: "Add a segmented, hexagonal collar that wraps around the base of the neck." },
+            { slug: "01af04bb-092f-482d-9115-997433a91a66", instr: "Add a flat, rectangular sensor panel on the forehead above the eyes." },
+            { slug: "01d4d67a-6868-4570-b631-89b63f75443e", instr: "Add a pair of sharp, curved horns to the top of the skull." },
+            { slug: "0297c087-2d12-41e0-92ca-3f4562ec319d", instr: "Add a small, rounded head tuft on top of the duck's head." },
+            { slug: "01e3441a-a0ba-41c8-9e5f-83401aefad37", instr: "Remove the spiky protrusions from the outer edge of the head." },
+            { slug: "03b18d3b-56da-4d8d-8536-56b2c53536a4", instr: "Remove the feathered crest entirely from the bird's head." },
+            { slug: "02da1c1e-a796-40ef-ab43-dd16c3bc80a3", instr: "Remove the raised beaded border encircling the oval face." },
+            { slug: "02975475-c36e-455a-8056-ee14422f7c3a", instr: "Add a wide, flat, rectangular saddle on its back." },
+            { slug: "01aed740-955d-490c-a3eb-8a95b19ca341", instr: "Add a pair of jagged, protruding bone spurs along the spine from the base of the skull to the lower back." },
+            { slug: 'owl', instr: 'Replace the head with a fierce chicken head' },
+            { slug: 'dragon', instr: 'Replace the head with a fearsome dragon head with jagged horns and razor-sharp fangs' },
+            { slug: 'dwarf', instr: 'Replace the head with a muscular bull head with thick curved horns' },
+            { slug: 'cat', instr: 'Put on a cape' },
+            { slug: 'jester', instr: 'Replace the head with a fearsome dragon head with jagged horns and razor-sharp fangs' },
+            { slug: 'flowerbox', instr: 'Remove the central flower decoration entirely.' }
+        ];
+        const EVID = (slug, which) => `assets/edit/${slug}_${which}.mp4`;
+        const EPOSTER = (slug, which) => `assets/edit/${slug}_${which}.jpg`;
 
-        // Fresh parse each call so the same GLB can be shown in several scenes
-        // (big viewer + thumbnail) without sharing one object across them.
-        function loadGLB(url) {
-            return new Promise((resolve, reject) =>
-                loader.load(url, g => resolve(g.scene), undefined, reject));
-        }
-
-        function applyNormal(obj) {
-            obj.traverse(c => { if (c.isMesh) c.material = NORMAL_MAT; });
-        }
-
-        function frame(camera, object, controls) {
-            const box = new THREE.Box3().setFromObject(object);
-            const size = box.getSize(new THREE.Vector3());
-            const center = box.getCenter(new THREE.Vector3());
-            object.position.sub(center); // recenter at origin
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            const dist = (maxDim / (2 * Math.tan((camera.fov * Math.PI / 180) / 2))) * 1.7;
-            camera.position.set(0, 0, dist);
-            camera.near = dist / 100;
-            camera.far = dist * 100;
-            camera.lookAt(0, 0, 0);
-            camera.updateProjectionMatrix();
-            if (controls) { controls.target.set(0, 0, 0); controls.update(); }
-        }
-
-        // ---- Big interactive viewer (one WebGL context per result section) ----
-        function makeViewer(canvas) {
-            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-            const controls = new OrbitControls(camera, canvas);
-            controls.enableDamping = true;
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = 1.8;
-            let current = null;
-
-            function render() {
-                requestAnimationFrame(render);
-                const w = canvas.clientWidth, h = canvas.clientHeight;
-                if (canvas.width !== w || canvas.height !== h) {
-                    renderer.setSize(w, h, false);
-                    camera.aspect = w / h;
-                    camera.updateProjectionMatrix();
-                }
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            render();
-
-            return async function load(url) {
-                try {
-                    const obj = await loadGLB(url);
-                    applyNormal(obj);
-                    if (current) scene.remove(current);
-                    current = obj;
-                    scene.add(obj);
-                    frame(camera, obj, controls);
-                } catch (e) { console.error('Failed to load', url, e); }
-            };
-        }
-
-        // ---- Shared offscreen renderer to snapshot normal-shaded thumbnails ----
-        const snap = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-        snap.setSize(180, 180);
-        const snapCache = {};
-        async function thumbnail(url) {
-            if (snapCache[url]) return snapCache[url];
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-            const obj = await loadGLB(url);
-            applyNormal(obj);
-            scene.add(obj);
-            frame(camera, obj, null);
-            snap.render(scene, camera);
-            const data = snap.domElement.toDataURL('image/png');
-            snapCache[url] = data;
-            return data;
-        }
-
-        document.querySelectorAll('.viewer-block').forEach(block => {
-            // A block can have one viewer ("main") or two ("before"/"after").
-            const viewers = {};
-            block.querySelectorAll('.big-viewer').forEach(canvas => {
-                const role = canvas.dataset.role || 'main';
-                viewers[role] = makeViewer(canvas);
-                if (canvas.dataset.init) viewers[role](canvas.dataset.init);
+        // ---- Global playback speed (0 = paused), shared by every result video ----
+        let speed = 1;
+        const allVideos = () => document.querySelectorAll('video.result-video');
+        function applySpeed(s) {
+            speed = s;
+            allVideos().forEach(v => {
+                if (s === 0) { v.pause(); }
+                else { v.playbackRate = s; v.play().catch(() => {}); }
             });
-            const defaultRole = Object.keys(viewers)[0];
-            const pick = name => viewers[name] || viewers[defaultRole];
+            document.querySelectorAll('.speed-opt').forEach(b =>
+                b.classList.toggle('active', parseFloat(b.dataset.s) === s));
+        }
+        document.querySelectorAll('.speed-opt').forEach(b =>
+            b.addEventListener('click', () => applySpeed(parseFloat(b.dataset.s))));
 
-            // Thumbnails select the input model (-> "before" viewer, or the only viewer).
-            const thumbs = block.querySelectorAll('.thumb');
-            thumbs.forEach(thumb => {
-                thumb.addEventListener('click', () => {
-                    pick(thumb.dataset.target)(thumb.dataset.src);
-                    thumbs.forEach(t => t.classList.remove('active'));
-                    thumb.classList.add('active');
+        // ---- Auto-looping normal video, no play button ----
+        function videoEl() {
+            const v = document.createElement('video');
+            v.className = 'big-viewer result-video';
+            v.muted = true; v.loop = true; v.autoplay = true; v.preload = 'auto';
+            v.playsInline = true;
+            v.setAttribute('playsinline', '');
+            v.setAttribute('webkit-playsinline', '');
+            return v;
+        }
+        function loadVid(v, mp4, poster) {
+            v.poster = poster;
+            v.src = mp4;
+            v.load();
+            if (speed !== 0) { v.playbackRate = speed; v.play().catch(() => {}); }
+        }
+        function thumbEl(poster, active) {
+            const d = document.createElement('div');
+            d.className = 'thumb' + (active ? ' active' : '');
+            const img = document.createElement('img');
+            img.src = poster; img.alt = ''; img.loading = 'lazy';
+            d.appendChild(img);
+            return d;
+        }
+        // gallery convenience wrappers (index into RESULTS)
+        const makeVideo = i => { const v = videoEl(); v.poster = POSTER(i); v.src = VID(i); return v; };
+        const setVideo = (v, i) => loadVid(v, VID(i), POSTER(i));
+        const makeThumb = (i, active) => thumbEl(POSTER(i), active);
+
+        // ---- Text-to-3D: two independent viewer columns, each a thumbnail
+        //      strip + a big looping video, so two results show side by side ----
+        function buildGalleryCol(indices, defaultIdx) {
+            const col = document.createElement('div');
+            col.className = 'gallery-col';
+            const strip = document.createElement('div');
+            strip.className = 'thumb-strip';
+            const v = makeVideo(defaultIdx);
+            indices.forEach(i => {
+                const t = makeThumb(i, i === defaultIdx);
+                t.addEventListener('click', () => {
+                    setVideo(v, i);
+                    strip.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
+                    t.classList.add('active');
                 });
+                strip.appendChild(t);
             });
-
-            // Instruction list selects the result (-> "after" viewer).
-            const instrs = block.querySelectorAll('.instr');
-            instrs.forEach(instr => {
-                instr.addEventListener('click', () => {
-                    pick(instr.dataset.target || 'after')(instr.dataset.src);
-                    instrs.forEach(i => i.classList.remove('active'));
-                    instr.classList.add('active');
-                });
-            });
-
-            // generate normal-shaded thumbnail previews sequentially
-            (async () => {
-                for (const thumb of thumbs) {
-                    try { thumb.querySelector('img').src = await thumbnail(thumb.dataset.src); }
-                    catch (e) { /* ignore a failed thumbnail */ }
-                }
-            })();
+            col.append(strip, v);
+            return col;
+        }
+        document.querySelectorAll('[data-gallery-pair]').forEach(block => {
+            // split the results across the two columns so the strips don't repeat
+            const all = RESULTS.map((_, i) => i);
+            const half = Math.ceil(all.length / 2);
+            const left = all.slice(0, half), right = all.slice(half);
+            block.append(buildGalleryCol(left, left[0]), buildGalleryCol(right, right[0]));
         });
+
+        // ---- 3D Editing: real source -> prediction pairs. Each list row pairs
+        //      the source thumbnail with its instruction and selects the example. ----
+        document.querySelectorAll('[data-edit]').forEach(block => {
+            const list = document.createElement('div');
+            list.className = 'edit-instructions';
+            list.innerHTML = `<div class="instr-title">${block.dataset.title}</div>`;
+
+            const colB = document.createElement('div');
+            colB.className = 'view-col';
+            colB.innerHTML = '<div class="view-label">Original</div>';
+            const vB = videoEl();
+            colB.appendChild(vB);
+
+            const colA = document.createElement('div');
+            colA.className = 'view-col';
+            colA.innerHTML = '<div class="view-label">Result</div>';
+            const vA = videoEl();
+            colA.appendChild(vA);
+
+            block.append(list, colB, colA);
+
+            const items = [];
+            function select(k) {
+                loadVid(vB, EVID(EDITS[k].slug, 'before'), EPOSTER(EDITS[k].slug, 'before'));
+                loadVid(vA, EVID(EDITS[k].slug, 'after'), EPOSTER(EDITS[k].slug, 'after'));
+                items.forEach((it, j) => it.classList.toggle('active', j === k));
+            }
+            EDITS.forEach((e, k) => {
+                const it = document.createElement('div');
+                it.className = 'edit-item' + (k === 0 ? ' active' : '');
+                const img = document.createElement('img');
+                img.src = EPOSTER(e.slug, 'before'); img.alt = ''; img.loading = 'lazy';
+                const txt = document.createElement('span');
+                txt.textContent = '“' + e.instr + '”';
+                it.append(img, txt);
+                it.addEventListener('click', () => select(k));
+                items.push(it);
+                list.appendChild(it);
+            });
+            select(0);
+        });
+
+        applySpeed(1);  // sync playbackRate + kick off autoplay
     </script>
 </body>
 
